@@ -1,0 +1,28 @@
+const products=[
+{id:1,name:"Neroli Body Oil",desc:"Cold-pressed body oil for skin that drinks it in.",price:42,tag:"Promotion",size:"100 ml",notes:"Neroli",img:"https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=900&q=85",bg:"#eee0b7"},
+{id:2,name:"Rosehip & Sea-buckthorn Serum",desc:"Overnight serum for a soft, rested glow.",price:38.5,tag:"New",size:"30 ml",notes:"Rosehip",img:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=85",bg:"#d4c8c3"},
+{id:3,name:"Oat Milk Day Fluid",desc:"A refillable airless pump for everyday calm.",price:29,tag:"Customer favorite",size:"50 ml",notes:"Dewy",img:"https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=900&q=85",bg:"#e6d9ca"},
+{id:4,name:"Calendula Repair Balm",desc:"A comfort-rich balm in reusable glass.",price:24,tag:"New",size:"60 ml",notes:"Calendula",img:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=85",bg:"#e3e5d7"},
+{id:5,name:"Saffron Glow Drops",desc:"A featherweight facial oil with bakuchiol and saffron.",price:48,tag:"Just poured",size:"30 ml",notes:"Saffron",img:"https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=900&q=85",bg:"#e8d8c4"},
+{id:6,name:"Wild Fig Hand Wash",desc:"A gentle, botanical hand wash for daily rituals.",price:22,size:"250 ml",notes:"Wild Fig",img:"https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=900&q=85",bg:"#d5d9cd"},
+{id:7,name:"Cedarwood Bath Oil",desc:"A grounding bath oil for slow evenings.",price:36,size:"100 ml",notes:"Cedarwood",img:"https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=900&q=85",bg:"#d8c7b7"},
+{id:8,name:"Botanical Gift Set",desc:"A considered collection of everyday essentials.",price:68,tag:"Bestseller",size:"Set of 3",notes:"Botanical",img:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=85",bg:"#e8d9c7"}
+];
+let cart=[];
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const money=n=>"$"+n.toFixed(2);
+function toast(msg){let t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(window._toast);window._toast=setTimeout(()=>t.classList.remove("show"),1900)}
+function renderProducts(list=products.slice(0,4)){let grid=$("#productGrid");grid.innerHTML=list.map(p=>`<article class="product-card"><div class="product-image"><img src="${p.img}" alt="${p.name}" loading="lazy">${p.tag?`<span class="product-tag">${p.tag}</span>`:""}</div><div class="product-info"><div class="swatches"><i style="background:#b56f45"></i><i style="background:#4b3835"></i><i style="background:#a5a68b"></i><small>${p.notes}</small></div><h3>${p.name}</h3><p>${p.desc}</p><div class="product-bottom"><b>${money(p.price)}</b><button class="add-cart" data-add="${p.id}">+ Cart</button></div></div></article>`).join("");$$("[data-add]").forEach(b=>b.onclick=()=>addToCart(+b.dataset.add))}
+function addToCart(id){let p=products.find(x=>x.id===id),item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});updateCart();toast(`${p.name} added to your bag`)}
+function updateCart(){let count=cart.reduce((s,x)=>s+x.qty,0),sum=cart.reduce((s,x)=>s+products.find(p=>p.id===x.id).price*x.qty,0);$("#cartCount").textContent=count;$("#drawerCount").textContent=`(${count})`;$("#subtotal").textContent=money(sum);$("#cartItems").innerHTML=cart.length?cart.map(x=>{let p=products.find(p=>p.id===x.id);return `<div class="cart-row"><img src="${p.img}" alt="${p.name}"><div><b>${p.name}</b><small>${p.size} · ${money(p.price)}</small><div class="qty"><button data-qty="${p.id}" data-delta="-1">−</button><span>${x.qty}</span><button data-qty="${p.id}" data-delta="1">＋</button></div></div><strong>${money(p.price*x.qty)}</strong></div>`}).join(""):'<p class="empty">Your bag is taking a quiet moment.</p>' ;$$("[data-qty]").forEach(b=>b.onclick=()=>{let id=+b.dataset.qty,item=cart.find(x=>x.id===id);item.qty+=+b.dataset.delta;if(item.qty<=0)cart=cart.filter(x=>x.id!==id);updateCart()})}
+function openCart(){$("#cartDrawer").classList.add("open");$("#scrim").classList.add("open")}
+function closeCart(){$("#cartDrawer").classList.remove("open");$("#scrim").classList.remove("open")}
+$("#cartOpen").onclick=openCart;$("#cartClose").onclick=closeCart;$("#scrim").onclick=closeCart;
+$("#checkout").onclick=()=>{if(!cart.length)return toast("Your bag is empty");toast("Demo checkout — no payment will be taken");};
+$("#searchInput").addEventListener("input",e=>{let q=e.target.value.toLowerCase().trim();if(!q){renderProducts();return}let found=products.filter(p=>(p.name+" "+p.desc+" "+p.notes).toLowerCase().includes(q));renderProducts(found);if(!found.length)$("#productGrid").innerHTML='<p class="no-results">No products found. Try another botanical.</p>';$("#shop").scrollIntoView({behavior:"smooth",block:"start"})});
+$$("[data-scroll]").forEach(a=>a.addEventListener("click",e=>{let target=document.getElementById(a.dataset.scroll);if(target){e.preventDefault();target.scrollIntoView({behavior:"smooth"});$("#navLinks")?.classList.remove("open")}}));
+$("#mobileMenu").onclick=()=>{$(".nav-left").classList.toggle("open")};
+$("#accountBtn").onclick=()=>toast("Account sign-in is a demo interaction");
+$("#newsletterForm").onsubmit=e=>{e.preventDefault();let email=$("#newsletterEmail").value;$("#newsletterMsg").textContent=`Thank you — ${email} is on the list.`;$("#newsletterEmail").value="";toast("You're on the list")};
+renderProducts();updateCart();
